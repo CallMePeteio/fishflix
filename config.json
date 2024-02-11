@@ -1,0 +1,7 @@
+{
+    "res": [1920, 1080],
+    "fps": 30,
+    "tcpUrl": "tcp://192.168.250.107:8080",
+    "rtmpUrl": "rtmp://ip.duerfyringsvakt.com/live",
+    "rtmpKey": "test?key=supersecret"
+}
