@@ -1,11 +1,19 @@
 {
-    "log-ffmpeg": true,
+    "printFrame": 100,
+    "log-ffmpeg": false,
     "res": [1920, 1080],
-    "fps": 60,
+    "fps": 30,
     "kiloBitsPrSecond": 6000,
+
     "tcpUrl": "tcp://192.168.250.107:8080",
     "rtmpUrl": "rtmp://live.twitch.tv/app/",
-    "rtmpKey": "secret :)"
+    "rtmpKey": "superSecret :)",
+
+    "apiUrl": "https://episkFyringsvakt:8443/api/rpidata",
+    "apiKey": "eksempel1?key=key2",
+    "sendDataIntervalSecond": 10,
+    "saveLogs": false,
+    "silent": false
 }
 
 
