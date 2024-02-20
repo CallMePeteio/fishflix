@@ -1,0 +1,36 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Stream</title>
+    <!-- Include the Video.js library from a CDN -->
+    <link href="https://unpkg.com/video.js/dist/video-js.css" rel="stylesheet">
+    <script src="https://unpkg.com/video.js/dist/video.js"></script>
+</head>
+<body>
+
+    <h1>Live Streams:</h1>
+
+    <div id="video-container">
+        <!--<video id="my-video" class="video-js" controls preload="auto" width="640" height="264" data-setup='{}'>
+            <source src="/hls/petter.m3u8" type="application/x-mpegURL">
+        </video>-->
+    </div>
+
+    <script>
+      var player = videojs('my-video', {
+          html5: {
+              hls: {
+                  overrideNative: true // Forces the use of Video.js's own HLS implementation
+              }
+          },
+          liveui: true // Enables the live UI
+      });
+  
+      player.play();
+  </script>
+
+  <script src="../script/updateLive.js"></script>
+</body>
+</html>

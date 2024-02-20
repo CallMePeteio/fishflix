@@ -4,14 +4,27 @@ services:
     build: ./rtmp
     ports:
       - "1935:1935"
-      - "8080:8080"
-    container_name: mvgorcum-nginx-rtmp
+    container_name: rtmp_server
 
     volumes:
       - ./data:/tmp/hls
 
+
+
   auth: 
     build: ./auth
     container_name: auth_server
-    
+
+    ports:
+     - "3000:3000"
+     - "8443:8443"
+     - "443:443"
+
+    volumes:
+      - ./auth/instance:/usr/src/app/instance
+      - ./data:/usr/src/app/data  # Mount the same ./data directory to a path inside the auth container
+
+      - /home/server/Desktop/fishflix/fishflix/auth/sertificates/fullchain.pem:/usr/src/app/sertificates/fullchain.pem
+      - /home/server/Desktop/fishflix/fishflix/auth/sertificates/privkey.pem:/usr/src/app/sertificates/privkey.pem
+
 
