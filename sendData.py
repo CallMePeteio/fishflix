@@ -1,4 +1,7 @@
 
+from twilio.rest import Client
+
+import traceback
 import threading
 import requests
 import datetime
@@ -104,8 +107,15 @@ class getRpiStats():
         return {"cpuTemp": self.cpuTemp, "cpuUsage": self.cpuUsage, "networkUsage": self.netowrkUsage, "cpuUsage": self.cpuUsage, "memoryUsage": self.memoryUsage, "uptime": self.uptime, "powerUsage": self.powerUsage}
 
 
-
-
+def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
+    client = Client(SID, AUTH_TOKEN)
+    for num in toNums:
+        message = client.messages \
+                        .create(
+                             body=msg,
+                             from_=fromNum,
+                             to=num
+                         )
 
 
 with open('./config.json') as f:
@@ -121,57 +131,80 @@ sentData = 0
 error = False
 while True:
 
-    stats.tick() # READS DATA
-    rpiStats = stats.getData() # GETS DATA
 
-    # 'rpiStats' =  [cpuUsage (float), cpuTemp (float), memoryUsage (float), networkUsage (float), powerUsage (float), uptime (str)],
-    # 'sensData': {exampleSensor1 (str): exmapleValue2 (str), Exmaplesensor2 (str): examplevalue2 (str)} 
+    try: 
+        stats.tick() # READS DATA
+        rpiStats = stats.getData() # GETS DATA
 
-    data = {
-        'key': streamSettings["apiKey"],
-        'rpiStats': [rpiStats["cpuUsage"], rpiStats["cpuTemp"], rpiStats["memoryUsage"], rpiStats["networkUsage"], rpiStats["powerUsage"], rpiStats["uptime"]] # THE ORDER MATTERS
-        #'sensData': {"temperatur": "15", "luftfuktighet": "getMoistStr()"}
-    }
+        # 'rpiStats' =  [cpuUsage (float), cpuTemp (float), memoryUsage (float), networkUsage (float), powerUsage (float), uptime (str)],
+        # 'sensData': {exampleSensor1 (str): exmapleValue2 (str), Exmaplesensor2 (str): examplevalue2 (str)} 
 
-
-    if streamSettings["saveLogs"] == True: 
-        
-        if "rpiStats" in data:
-            with open("logs/" + csvFileNameStats, 'a') as f:
-                writer = csv.writer(f)
-                if firstRun == True:
-                    writer.writerow(statsFields)
-                writer.writerow(data["rpiStats"])
-
-        if "sensData" in data:
-            with open("logs/" + csvFileNameSensData, 'a') as f:
-                writer = csv.writer(f)
-                if firstRun == True:
-                    writer.writerow(list(data["sensData"].keys()))
-                writer.writerow(list(data["sensData"].values()))
-
-    try:
-        response = requests.post(streamSettings["apiUrl"], json=data)
-        error = False
-    except requests.exceptions.ConnectionError as e:
-        print("sendData.py:     Failed to establish api connection, retrying.")
-        error = True
+        data = {
+            'key': streamSettings["apiKey"],
+            'rpiStats': [rpiStats["cpuUsage"], rpiStats["cpuTemp"], rpiStats["memoryUsage"], rpiStats["networkUsage"], rpiStats["powerUsage"], rpiStats["uptime"]] # THE ORDER MATTERS
+            #'sensData': {"temperatur": "15", "luftfuktighet": "getMoistStr()"}
+        }
 
 
+        if streamSettings["saveLogs"] == True: 
 
-    if error == False:
-        if response.status_code == 200:
-            if streamSettings["silent"] == False:
-                sentData += 1
-                print(f"#{sentData} Sucsessfully sent data to api")
-        elif response.status_code == 401:
-            print("sendData.py:     There was an authentication error!")
-        elif response.status_code == 500:
-            print("sendData.py:     Internal sevrer error response from api!")
-        else: 
-            print(f"sendData.py:     Got an unknown status code in return: {response.status_code}")
+            if "rpiStats" in data:
+                with open("logs/" + csvFileNameStats, 'a') as f:
+                    writer = csv.writer(f)
+                    if firstRun == True:
+                        writer.writerow(statsFields)
+                    writer.writerow(data["rpiStats"])
 
-    firstRun = False
+            if "sensData" in data:
+                with open("logs/" + csvFileNameSensData, 'a') as f:
+                    writer = csv.writer(f)
+                    if firstRun == True:
+                        writer.writerow(list(data["sensData"].keys()))
+                    writer.writerow(list(data["sensData"].values()))
+
+        try:
+            response = requests.post(streamSettings["apiUrl"], json=data)
+            error = False
+        except requests.exceptions.ConnectionError as e:
+            print("sendData.py:     Failed to establish api connection, retrying.")
+            
+            if streamSettings["sendText"] == True and error == False:
+                msg = "Raspberry pi fishflix specs lost connection to server"
+                sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
+
+
+            error = True
+
+
+
+        if error == False:
+            if response.status_code == 200:
+                if streamSettings["silent"] == False:
+                    sentData += 1
+                    print(f"#{sentData} Sucsessfully sent data to api")
+            elif response.status_code == 401:
+                print("sendData.py:     There was an authentication error!")
+            elif response.status_code == 500:
+                print("sendData.py:     Internal sevrer error response from api!")
+            else: 
+                print(f"sendData.py:     Got an unknown status code in return: {response.status_code}")
+
+        firstRun = False
+    
+    except Exception as e:
+
+        currentTime = str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
+        errorType = str(type(e).__name__)
+
+        errorPath = "logs/" + errorType + "_" + currentTime + ".txt"
+
+        if streamSettings["logErrors"] == True:
+            if not os.path.exists(errorPath): 
+                with open(errorPath, 'w') as f:
+                    f.write(errorType + traceback.format_exc())
+            else: 
+                print(f"Error file already exists!")
+        print(f"There was a critical error with sending data! \n {e}")
 
 
 

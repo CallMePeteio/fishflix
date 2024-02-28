@@ -1,19 +1,26 @@
 {
     "printFrame": 100,
-    "log-ffmpeg": false,
+    "log-ffmpeg": true,
     "res": [1920, 1080],
     "fps": 30,
     "kiloBitsPrSecond": 6000,
 
     "tcpUrl": "tcp://192.168.250.107:8080",
-    "rtmpUrl": "rtmp://live.twitch.tv/app/",
-    "rtmpKey": "superSecret :)",
+    "rtmpUrl": "rtmp://ip.duerfyringsvakt.com/live",
+    "rtmpKey": "epicThings?key=epicKey",
 
-    "apiUrl": "https://episkFyringsvakt:8443/api/rpidata",
-    "apiKey": "eksempel1?key=key2",
+    "apiUrl": "https://ip.duerfyringsvakt.com:8443/api/rpidata",
+    "apiKey": "epicThings?key=epicKey",
     "sendDataIntervalSecond": 10,
-    "saveLogs": false,
-    "silent": false
+    "saveLogs": true,
+    "logErrors": true,
+    "silent": false,
+
+    "msgAuth": ["SID", "AUTH_TOKEN"],
+    "toNumbers": ["+TONumWithCuntryCode"],
+    "fromNumber": "+fromNum_ TWILIO API CREDS",
+    "sendText": false
+
 }
 
 

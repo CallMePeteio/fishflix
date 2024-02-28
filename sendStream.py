@@ -1,4 +1,7 @@
 
+from twilio.rest import Client
+
+
 import subprocess
 import threading
 import json
@@ -25,43 +28,78 @@ def start_TCP(url, res, fps, bitsPerSecond, printFrame):
         process.terminate()
         process.wait()
 
+def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
+    client = Client(SID, AUTH_TOKEN)
+    for num in toNums:
+        message = client.messages \
+                        .create(
+                             body=msg,
+                             from_=fromNum,
+                             to=num
+                         )
+
+
+
 def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
-    """
-    Converts a TCP stream to an RTMP stream using FFmpeg.
+        
 
-    Parameters:
-    tcp_url (str): The source TCP stream URL.
-    rtmp_url (str): The destination RTMP server URL.
-    rtmp_key (str): The stream key for the RTMP server.
-    log (bool): Whether to generate a log file.
-    fps (int): Frames per second for the output video.
-    bitrate (str): Optional. Specify the video bitrate (e.g., '1000k' for 1000 kbits/s).
-    """
+    startTcpStream = False
+    while True: # FOR ERROR RETRYING
 
-    full_rtmp_url = f"{rtmp_url}/{rtmp_key}"
+        """
+        Converts a TCP stream to an RTMP stream using FFmpeg.
 
-    # FFmpeg command to capture the TCP stream and push it to an RTMP endpoint
-    command = [
-        'ffmpeg',
-        '-i', tcp_url,  # Input from the TCP stream
-        '-r', str(fps),  # Specify the frame rate for the output video
-        '-c', 'copy',   # Copy the stream without re-encoding
-        '-f', 'flv',    # Format for the RTMP stream
-    ]
+        Parameters:
+        tcp_url (str): The source TCP stream URL.
+        rtmp_url (str): The destination RTMP server URL.
+        rtmp_key (str): The stream key for the RTMP server.
+        log (bool): Whether to generate a log file.
+        fps (int): Frames per second for the output video.
+        bitrate (str): Optional. Specify the video bitrate (e.g., '1000k' for 1000 kbits/s).
+        """
 
-    if bitrate != None:
-        command.extend(['-b:v', str(bitrate)])
+        if startTcpStream == True:
+            threading.Thread(target=start_TCP, args=(streamSettings["tcpUrl"], streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
+            time.sleep(3)
+            startTcpStream = False            
 
-    if log == True:
-        command.append("-report") # FFMPEG WIL GENNERATE A LOG FILE UPON START, BETTER FOR DEBUGGING
+        full_rtmp_url = f"{rtmp_url}/{rtmp_key}"
 
-    command.append(full_rtmp_url)  # Output RTMP URL
-    err = subprocess.run(command, stderr=subprocess.PIPE, text=True, check=True)  # Execute the FFmpeg command
-    
-    if err.returncode != 0: # IF IT WAS UNSUCSESSFULL
-        print("\n \n Returnd an error")
-        print(f"{err.stderr} \n \n")
-        raise Exception("Error converting TCP to RTMP. Check rtmpUrl and keys and that the tcp stream is running")
+        # FFmpeg command to capture the TCP stream and push it to an RTMP endpoint
+        command = [
+            'ffmpeg',
+            '-i', tcp_url,  # Input from the TCP stream
+            '-r', str(fps),  # Specify the frame rate for the output video
+            '-c', 'copy',   # Copy the stream without re-encoding
+            '-f', 'flv',    # Format for the RTMP stream
+        ]
+
+        if bitrate != None:
+            command.extend(['-b:v', str(bitrate)])
+
+        if log == True:
+            command.append("-report") # FFMPEG WIL GENNERATE A LOG FILE UPON START, BETTER FOR DEBUGGING
+
+        command.append(full_rtmp_url)  # Output RTMP URL
+        try:
+            err = subprocess.run(command, stderr=subprocess.PIPE, text=True, check=True)  # Execute the FFmpeg command
+            print(err)
+        except subprocess.CalledProcessError as e:
+            # Handle the error
+            print(f"FFmpeg command failed with return code {e.returncode}")
+            print(f"Error message: {e.stderr}")
+            print(f"Retrying running ffmpeg stream...")
+            for i in reversed(range(10)):
+                print(i+1)
+                time.sleep(1)
+
+
+            if streamSettings["sendText"] == True and startTcpStream == False:
+                msg = "Raspberry pi fishflix video lost connection to server"
+                sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
+
+            startTcpStream = True
+
 
 
 with open('./config.json') as f:
