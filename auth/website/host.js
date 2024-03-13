@@ -10,8 +10,11 @@ const constant = require("../constant");
 const app = express();
 
 
+app.use('/data', express.static('/usr/src/app/data'));
 app.use(express.static("website"));
 app.use(express.json());
+
+
 
 
 
@@ -37,6 +40,13 @@ setInterval(updateUserCache, constant.HOST.userUpdateCacheTimer);
 
 
 // __________________ PATHS __________________
+
+
+const path = require("path");
+app.get('/test', (req, res) => {
+    res.sendFile(path.resolve('../data'));
+});
+
 
 app.get('/live', (req, res) => {
     res.sendFile(__dirname + constant.HOST.HTML_PARENT_FOLDER + '/live.html');
