@@ -1,0 +1,15 @@
+
+
+
+
+
+
+paths:
+/api/rpidata = Where rpi sends stat/sens data needs to contain key
+/api/threewayhandshake/wakeup = Where rpi makes a wakeup call, wakeupcall contains key, mac, localip, wanip.
+/api/getRpiInit = Returns all of the initalRpi's. This api call is called evry 100ms because of the slow update time from the synchronus functions
+/api/getRpi = Returns all of the (once connected) raspberry pi's. This api call is called evry 100ms because of the slow update time from the synchronus functions
+
+
+
+USER SHULDNT BE ABLE TO MAKE SAME RPI TWICE IN ADD NEW RPI

@@ -1,0 +1,113 @@
+
+
+
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    position: fixed; /* or absolute */
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*background-color: #333;*/
+    background-color: #a15a5a;
+    color: white;
+}
+.nav-menu {
+    list-style: none;
+    display: flex;
+}
+
+.nav-link {
+    display: block;
+    padding: 1em;
+    color: black;
+    text-decoration: none;
+}
+
+.nav-link:hover, .nav-link:focus {
+  outline: 2px solid gray; 
+}
+
+.nav-toggle {
+    background: none;
+    border: none;
+    color: white;
+    padding: 1em;
+    display: none;
+}
+
+.hamburger {
+    width: 25px;
+    height: 2px;
+    background-color: white;
+    display: block;
+    position: relative;
+}
+
+.hamburger::before, .hamburger::after {
+    content: '';
+    background-color: white;
+    width: 25px;
+    height: 2px;
+    display: block;
+    position: absolute;
+    transition: all 0.3s;
+}
+
+.hamburger::before {
+    top: -8px;
+}
+
+.hamburger::after {
+    top: 8px;
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-toggle {
+        display: block;
+    }
+}
+</style>
+
+
+<nav id="navbar">
+  <button class="nav-toggle" aria-label="toggle navigation">
+      <span class="hamburger"></span>
+  </button>
+  <ul class="nav-menu">
+      <li><a href="/home" class="nav-link">Home</a></li>
+      <li><a href="/newRpi" class="nav-link">New Camera</a></li>
+      <li><a href="/activeCamera" class="nav-link">Active Cameras</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+  </ul>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const navToggle = document.querySelector('.nav-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+
+  navToggle.addEventListener('click', function () {
+      navMenu.classList.toggle('active');
+  });
+});
+</script>
