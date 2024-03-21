@@ -1,0 +1,21 @@
+{
+    "printFrame": 100,
+    "log-ffmpeg": true,
+    "res": [1920, 1080],
+    "fps": 30,
+    "kiloBitsPrSecond": 6000,
+
+    "tcpUrl": "url",
+    "rtmpUrl": "url",
+    "rtmpKey": "key",
+
+    "apiUrl": "url",
+    "apiKey": "key",
+    "sendDataIntervalSecond": 10,
+    "saveLogs": true,
+    "logErrors": true,
+    "silent": false
+
+}
+
+

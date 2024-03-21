@@ -38,8 +38,6 @@ def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
                              to=num
                          )
 
-
-
 def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
         
 
@@ -94,9 +92,10 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
                 time.sleep(1)
 
 
-            if streamSettings["sendText"] == True and startTcpStream == False:
-                msg = "Raspberry pi fishflix video lost connection to server"
-                sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
+            if "sendText" in streamSettings and "msgAuth" in streamSettings and "toNumbers" in streamSettings and "fromNumber" in streamSettings:
+                if streamSettings["sendText"] == True and startTcpStream == False:
+                    msg = "Raspberry pi fishflix video lost connection to server"
+                    sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
 
             startTcpStream = True
 

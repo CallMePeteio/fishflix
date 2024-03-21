@@ -168,9 +168,12 @@ while True:
         except requests.exceptions.ConnectionError as e:
             print("sendData.py:     Failed to establish api connection, retrying.")
             
-            if streamSettings["sendText"] == True and error == False:
-                msg = "Raspberry pi fishflix specs lost connection to server"
-                sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
+
+            
+            if "sendText" in streamSettings and "msgAuth" in streamSettings and "toNumbers" in streamSettings and "fromNumber" in streamSettings:
+                if streamSettings["sendText"] == True and error == False:
+                    msg = "Raspberry pi fishflix specs lost connection to server"
+                    sendText(streamSettings["msgAuth"][0], streamSettings["msgAuth"][1], streamSettings["toNumbers"], streamSettings["fromNumber"], msg)
 
 
             error = True
