@@ -5,7 +5,7 @@
     "fps": 30,
     "kiloBitsPrSecond": 6000,
 
-    "tcpUrl": "url",
+    "tcpPort": 8080,
     "rtmpUrl": "url",
     "rtmpKey": "key",
 
@@ -14,8 +14,11 @@
     "sendDataIntervalSecond": 10,
     "saveLogs": true,
     "logErrors": true,
-    "silent": false
+    "silent": false,
 
+    "revSshUniquePort": 2222,
+    "revSshServerUser": "username",
+    "revSshServerUrl": "url"
 }
 
 

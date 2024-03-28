@@ -6,6 +6,17 @@ import subprocess
 import threading
 import json
 import time
+import os
+
+parentFolder = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(parentFolder, 'config.json')) as f:
+    streamSettings = json.load(f)
+
+
+
+if isinstance(streamSettings["kiloBitsPrSecond"], int) != True: 
+    raise Exception("Invalid input bitrate, must be integer value! (in config.json)")
+
 
 
 def start_TCP(url, res, fps, bitsPerSecond, printFrame):
@@ -38,7 +49,7 @@ def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
                              to=num
                          )
 
-def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
+def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate, fps=30):
         
 
     startTcpStream = False
@@ -57,7 +68,7 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
         """
 
         if startTcpStream == True:
-            threading.Thread(target=start_TCP, args=(streamSettings["tcpUrl"], streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
+            threading.Thread(target=start_TCP, args=(tcp_url, streamSettings["res"], streamSettings["fps"], bitrate, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
             time.sleep(3)
             startTcpStream = False            
 
@@ -101,13 +112,16 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate=None, fps=30):
 
 
 
-with open('./config.json') as f:
-  streamSettings = json.load(f)
+def main(localIp):
 
-if isinstance(streamSettings["kiloBitsPrSecond"], int) != True: 
-    raise Exception("Invalid input bitrate, must be integer value! (in config.json)")
 
-bitsPerSecond = streamSettings["kiloBitsPrSecond"] * 1000
-threading.Thread(target=start_TCP, args=(streamSettings["tcpUrl"], streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
-time.sleep(3) # WAITS FOR THE TCP STREAM TO START
-threading.Thread(target=tcp_to_rtmp, args=(streamSettings["tcpUrl"], streamSettings["rtmpUrl"], streamSettings["rtmpKey"], streamSettings["log-ffmpeg"], bitsPerSecond, streamSettings["fps"])).start()
+    bitsPerSecond = streamSettings["kiloBitsPrSecond"] * 1000
+    tcpStreamUrl = "tcp://" + str(localIp) + ":" + str(streamSettings["tcpPort"])
+
+    threading.Thread(target=start_TCP, args=(tcpStreamUrl, streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
+    time.sleep(3) # WAITS FOR THE TCP STREAM TO START
+    threading.Thread(target=tcp_to_rtmp, args=(tcpStreamUrl, streamSettings["rtmpUrl"], streamSettings["rtmpKey"], streamSettings["log-ffmpeg"], bitsPerSecond, streamSettings["fps"])).start()
+
+
+if __name__ == "__main__":
+    main("192.168.10.19")

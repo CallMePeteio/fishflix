@@ -1,4 +1,4 @@
-#!/home/troll/Desktop/petter_test/env/bin/python
+#!/home/troll/software/fishflix/env/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

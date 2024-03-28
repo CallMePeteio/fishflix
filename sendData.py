@@ -118,7 +118,8 @@ def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
                          )
 
 
-with open('./config.json') as f:
+parentFolder = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(parentFolder, 'config.json')) as f:
   streamSettings = json.load(f)
 
 firstRun = True
@@ -149,21 +150,23 @@ while True:
         if streamSettings["saveLogs"] == True: 
 
             if "rpiStats" in data:
-                with open("logs/" + csvFileNameStats, 'a') as f:
+                statsPath = os.path.join(parentFolder, "logs/" + csvFileNameStats)
+                with open(statsPath, 'a') as f:
                     writer = csv.writer(f)
                     if firstRun == True:
                         writer.writerow(statsFields)
                     writer.writerow(data["rpiStats"])
 
             if "sensData" in data:
-                with open("logs/" + csvFileNameSensData, 'a') as f:
+                sensPath = os.path.join(parentFolder, "logs/" + csvFileNameSensData)
+                with open(sensPath, 'a') as f:
                     writer = csv.writer(f)
                     if firstRun == True:
                         writer.writerow(list(data["sensData"].keys()))
                     writer.writerow(list(data["sensData"].values()))
 
         try:
-            response = requests.post(streamSettings["apiUrl"], json=data)
+            response = requests.post(streamSettings["apiUrl"] + "/api/rpidata", json=data)
             error = False
         except requests.exceptions.ConnectionError as e:
             print("sendData.py:     Failed to establish api connection, retrying.")
@@ -199,7 +202,7 @@ while True:
         currentTime = str(datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
         errorType = str(type(e).__name__)
 
-        errorPath = "logs/" + errorType + "_" + currentTime + ".txt"
+        errorPath = os.path.join(parentFolder, "logs/" + errorType + "_" + currentTime + ".txt")
 
         if streamSettings["logErrors"] == True:
             if not os.path.exists(errorPath): 
