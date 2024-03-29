@@ -15,9 +15,9 @@ localIp = startup.main()
 import sendStream
 sendStream.main(localIp)
 
-# RUNS THE SCRIPT THAT SENDS THE DATA
-import sendData
-
 # RUNS THE SCRIPT THAT MAINTAINS THE RPI. FOREXAMPLE UPDATES WAN IP WHEN UPDATED
 import maintain
 maintain.main("", "")
+
+# RUNS THE SCRIPT THAT SENDS THE DATA (BLOCKING)
+import sendData 

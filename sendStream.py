@@ -20,24 +20,29 @@ if isinstance(streamSettings["kiloBitsPrSecond"], int) != True:
 
 
 def start_TCP(url, res, fps, bitsPerSecond, printFrame):
-    videoCommand = f'rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o "{url}?listen=1"'
-    process = subprocess.Popen(videoCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-
-    frame_count = 0
     try:
-        while True:
-            line = process.stdout.readline()
-            if not line:
-                break
-            frame_count += 1
-            if frame_count % printFrame == 0:  # Adjust this number to change the frequency of logging
-                print(line.strip())
+        videoCommand = f'rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o "{url}?listen=1"'
+        process = subprocess.Popen(videoCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
+        frame_count = 0
+        try:
+            while True:
+                line = process.stdout.readline()
+                if not line:
+                    break
+                frame_count += 1
+                if frame_count % printFrame == 0:  # Adjust this number to change the frequency of logging
+                    print(line.strip())
+
+        except Exception as e:
+            print(f"Error processing output: {e}")
+        finally:
+            process.terminate()
+            process.wait()
     except Exception as e:
-        print(f"Error processing output: {e}")
-    finally:
-        process.terminate()
-        process.wait()
+        print(f"sendStream.py:      There was an error starting tcp stream: {e}")
+        return False
+
 
 def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
     client = Client(SID, AUTH_TOKEN)
@@ -68,9 +73,11 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate, fps=30):
         """
 
         if startTcpStream == True:
-            threading.Thread(target=start_TCP, args=(tcp_url, streamSettings["res"], streamSettings["fps"], bitrate, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
-            time.sleep(3)
-            startTcpStream = False            
+            tcpThread = threading.Thread(target=start_TCP, args=(tcp_url, streamSettings["res"], streamSettings["fps"], bitrate, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
+            time.sleep(6)
+
+            if tcpThread.is_alive(): # IF THE THREAD DIDNT RETURN ANY ERRORS (IS RUNNING)
+                startTcpStream = False
 
         full_rtmp_url = f"{rtmp_url}/{rtmp_key}"
 

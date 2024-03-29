@@ -2,6 +2,7 @@
 
 
 from startup import Startup
+import threading
 import requests
 import json
 import time
@@ -35,24 +36,23 @@ def sendNewIp(wanIp, localIp):
             }
 
             response = requests.post(UPDATE_WAN_IP_ENDPOINT, json=data, headers=API_HEADERS)
-
-            print(response)
+            print(f"maintain.py:     Updated ip to: {wanIp}, {localIp}")
 
 def main(currentWanIp, currentLocalIp):
-    while True:
+    def run(currentWanIp, currentLocalIp):
+        while True:
+            wanIp = start.getWanIp()
+            localIp = start.getLocalIp()
+            if currentWanIp != wanIp or localIp != currentLocalIp: 
+                sendNewIp(wanIp, localIp)
+                currentWanIp = wanIp
+                currentLocalIp = localIp
 
-        wanIp = start.getWanIp()
-        localIp = start.getLocalIp()
-        if currentWanIp != wanIp or localIp != currentLocalIp: 
-            sendNewIp(wanIp, localIp)
-            currentWanIp = wanIp
-            currentLocalIp = localIp
+            time.sleep(10)
 
-        time.sleep(10)
-
+    threading.Thread(target=run, args=(currentWanIp, currentLocalIp)).start()
 
 currentWanIp, currentLocalIp = "", ""
-
 if __name__ == "__main__":    
     main(currentWanIp, currentLocalIp)
 
