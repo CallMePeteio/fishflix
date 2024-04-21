@@ -58,7 +58,7 @@ def writeError(path, text):
         print(f"reverseSSH:   There was a critical error while writing error log file!: {error}")
 
 def createTunnel():
-    command = ["ssh","-N", "-R", f"{PORT}:localhost:22","troll@ip.duerfyringsvakt.com"]
+    command = ["ssh","-N", "-R", f"{PORT}:localhost:22", "-o", "ServerAliveInterval=15", "troll@ip.duerfyringsvakt.com"]
     return subprocess.Popen(command)
 
 
