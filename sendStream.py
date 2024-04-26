@@ -1,4 +1,3 @@
-
 from twilio.rest import Client
 
 
@@ -19,9 +18,9 @@ if isinstance(streamSettings["kiloBitsPrSecond"], int) != True:
 
 
 
-def start_TCP(url, res, fps, bitsPerSecond, printFrame):
+def start_TCP(url, res, fps, bitsPerSecond, printFrame, whiteBal):
     try:
-        videoCommand = f'rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o "{url}?listen=1"'
+        videoCommand = f'rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o "{url}?listen=1 --awb off --awbgains {whiteBal[0]},{whiteBal[1]}"'
         process = subprocess.Popen(videoCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
         frame_count = 0
@@ -76,8 +75,8 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate, fps=30):
             tcpThread = threading.Thread(target=start_TCP, args=(tcp_url, streamSettings["res"], streamSettings["fps"], bitrate, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
             time.sleep(6)
 
-            if tcpThread.is_alive(): # IF THE THREAD DIDNT RETURN ANY ERRORS (IS RUNNING)
-                startTcpStream = False
+            #elif tcpThread.is_alive(): # IF THE THREAD DIDNT RETURN ANY ERRORS (IS RUNNING)
+             #   startTcpStream = False
 
         full_rtmp_url = f"{rtmp_url}/{rtmp_key}"
 
@@ -86,6 +85,7 @@ def tcp_to_rtmp(tcp_url, rtmp_url, rtmp_key, log, bitrate, fps=30):
             'ffmpeg',
             '-i', tcp_url,  # Input from the TCP stream
             '-r', str(fps),  # Specify the frame rate for the output video
+            '-f', 'lavfi', '-i', 'anullsrc',  # Generate a silent audio track
             '-c', 'copy',   # Copy the stream without re-encoding
             '-f', 'flv',    # Format for the RTMP stream
         ]
@@ -125,10 +125,10 @@ def main(localIp):
     bitsPerSecond = streamSettings["kiloBitsPrSecond"] * 1000
     tcpStreamUrl = "tcp://" + str(localIp) + ":" + str(streamSettings["tcpPort"])
 
-    threading.Thread(target=start_TCP, args=(tcpStreamUrl, streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
+    threading.Thread(target=start_TCP, args=(tcpStreamUrl, streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"], streamSettings["whiteBalance"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
     time.sleep(3) # WAITS FOR THE TCP STREAM TO START
     threading.Thread(target=tcp_to_rtmp, args=(tcpStreamUrl, streamSettings["rtmpUrl"], streamSettings["rtmpKey"], streamSettings["log-ffmpeg"], bitsPerSecond, streamSettings["fps"])).start()
 
 
 if __name__ == "__main__":
-    main("192.168.10.19")
+    main("192.168.1.154")
