@@ -17,10 +17,13 @@ if isinstance(streamSettings["kiloBitsPrSecond"], int) != True:
     raise Exception("Invalid input bitrate, must be integer value! (in config.json)")
 
 
-
-def start_TCP(url, res, fps, bitsPerSecond, printFrame, whiteBal):
+def start_TCP(url, res, fps, bitsPerSecond, printFrame, whiteBal=None):
     try:
-        videoCommand = f'rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o "{url}?listen=1 --awb off --awbgains {whiteBal[0]},{whiteBal[1]}"'
+        if whiteBal == None:
+            print(f"sendStream.py        Whitebal Wasnt intputed, defaulting to 1")
+            whiteBal = ["1", "1"]
+
+        videoCommand = f"rpicam-vid -t 0 -b {bitsPerSecond} --libav-format mpegts --width {res[0]} --height {res[1]} --framerate {fps} --listen -o '{url}?listen=1 --awb off --awbgains {whiteBal[0]},{whiteBal[1]}'"
         process = subprocess.Popen(videoCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
         frame_count = 0
@@ -41,6 +44,7 @@ def start_TCP(url, res, fps, bitsPerSecond, printFrame, whiteBal):
     except Exception as e:
         print(f"sendStream.py:      There was an error starting tcp stream: {e}")
         return False
+
 
 
 def sendText(SID, AUTH_TOKEN, toNums, fromNum, msg):
@@ -126,7 +130,7 @@ def main(localIp):
     tcpStreamUrl = "tcp://" + str(localIp) + ":" + str(streamSettings["tcpPort"])
 
     threading.Thread(target=start_TCP, args=(tcpStreamUrl, streamSettings["res"], streamSettings["fps"], bitsPerSecond, streamSettings["printFrame"], streamSettings["whiteBalance"])).start() # RUNS THE TCP STREAM IN A SEPERATE THREAD
-    time.sleep(3) # WAITS FOR THE TCP STREAM TO START
+    time.sleep(4) # WAITS FOR THE TCP STREAM TO START
     threading.Thread(target=tcp_to_rtmp, args=(tcpStreamUrl, streamSettings["rtmpUrl"], streamSettings["rtmpKey"], streamSettings["log-ffmpeg"], bitsPerSecond, streamSettings["fps"])).start()
 
 
